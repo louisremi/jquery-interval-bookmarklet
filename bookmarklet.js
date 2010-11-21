@@ -1,0 +1,137 @@
+(function( jQuery ) {
+
+var timerId;
+
+// get rid of current timerId
+jQuery.fx.stop();
+
+jQuery.fx.prototype.custom = function( from, to, unit ) {
+  var self = this,
+    fx = jQuery.fx;
+
+  this.startTime = jQuery.now();
+  this.start = from;
+  this.end = to;
+  this.unit = unit || this.unit || 'px';
+  this.now = this.start;
+  this.pos = this.state = 0;
+
+  function t( gotoEnd ) {
+    return self.step(gotoEnd);
+  }
+
+  t.elem = this.elem;
+
+  if ( t() && jQuery.timers.push(t) && !timerId ) {
+    timerId = (jQuery.support.frameInterval? setFrameInterval : setInterval)(fx.tick, fx.interval);
+  }
+  
+  function setFrameInterval( cb ) {
+    var toClear = function() {
+      cb();
+      window.mozRequestAnimationFrame();
+    }
+    window.addEventListener('MozBeforePaint', toClear, false);
+    window.mozRequestAnimationFrame();
+    return toClear;
+  }
+}
+
+// create a new timerId
+jQuery(div).animate({top: 0}, 1);
+
+jQuery.fx.stop = function() {
+  (jQuery.support.frameInterval? clearFrameInterval : clearInterval)( timerId );
+  timerId = null;
+  
+  function clearFrameInterval( toClear ) {
+    window.removeEventListener('MozBeforePaint', toClear, false);
+  }
+};
+
+var
+    $ = jQuery
+  , $this = $(
+      '<style>'+
+        '#fpslet {'+
+          'position: fixed;'+
+          'top: 0px;'+
+          'right: 0px;'+
+          'width: 150px;'+
+          'background: #141414;'+
+          'color: #fff'+
+        '}'+
+        '#fpslet * {'+
+          'font-size: 10px;'+
+          'font-family: Arial,sans'+
+        '}'+
+        '#fpslet button {'+
+          'padding: 0 3px'+
+        '}'+
+      '</style>'+ 
+      '<table id="fpslet">'+
+        '<tr>'+
+          '<td>Interval</td>'+
+          '<td>'+
+            '<button>-</button><input type="text" size="3" style="text-align:center;" /><button>+</button>'+
+          '</td>'+
+        '</tr>'+
+        '<tr>'+
+          '<td>Theoritical</td>'+
+          '<td> <span id="thFps">?</span> fps</td>'+
+        '</tr>'+
+        '<tr>'+
+          '<td>Actual</td>'+
+          '<td> <span id="acFps">?</span> fps</td>'+
+        '</tr>'+
+        '<tr style="display:none;">'+
+          '<td colspan="2"><input type="checkbox" id="mraf" /><label title="use MozRequestAnimationFrame" for="mraf">MozRequestAnim…</label></td>'+
+        '</tr>'+
+      '</table>'
+    ).appendTo(document.body)
+  , $frameInterval = $this.find('input:first').attr('value', $.fx.interval)
+  , $thFps = $('#thFps')
+  , $acFps = $('#acFps')
+  , $mraf = $('#mraf')
+  , div = document.createElement('div')
+  , i = 0, I = 1000
+  ;
+  
+function thFps() {
+  $thFps.text(Math.round(I /$.fx.interval));
+}
+thFps();
+        
+$this.find('button').bind('click', function() {
+  $frameInterval.attr('value', +$frameInterval.attr('value') + (this.innerHTML == '+'? 1 : -1)).trigger('change');
+});
+$frameInterval.bind('change', function() {
+  var fx = $.fx;
+  fx.interval = +this.value;
+  fx.stop();
+  // Lunch dummy animation to continue running current animations.
+  $(div).animate({top: 0}, 1);
+  thFps();
+});
+
+$.fx.step.fps = function() {
+  i++;
+};
+$acFps.animate({fps: 1}, I);
+setInterval(function() {
+  $acFps.html(i).stop().animate({fps: 1}, I);
+  i = 0;
+}, I);
+
+if (!!window.mozRequestAnimationFrame) {
+  $.support.frameInterval = false;
+  $mraf.bind('click', function() {
+    $.fx.stop();
+    $.support.frameInterval = !$.support.frameInterval;
+    $(div).animate({top: 0}, 1);
+    
+  });
+  $this.find('tr:last').show();
+}
+
+})( jQuery );

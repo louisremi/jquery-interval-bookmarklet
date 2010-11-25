@@ -1,8 +1,15 @@
 (function( jQuery ) {
 
-var timerId;
+/*
+ * We are going to replace jQuery's internal animation logic.
+ * This alternative logic will allow to switch between setInterval() and MozRequestAnimationFrame based one.
+ */
+var
+  // We need a new internal timerId
+  timerId,
+  div = document.createElement('div');
 
-// get rid of current timerId
+// get rid of previous timerId
 jQuery.fx.stop();
 
 jQuery.fx.prototype.custom = function( from, to, unit ) {
@@ -37,7 +44,7 @@ jQuery.fx.prototype.custom = function( from, to, unit ) {
   }
 }
 
-// create a new timerId
+// create a new timerId using a dummy animation
 jQuery(div).animate({top: 0}, 1);
 
 jQuery.fx.stop = function() {
@@ -49,6 +56,9 @@ jQuery.fx.stop = function() {
   }
 };
 
+/*
+ * Widget code
+ */
 var
     $ = jQuery
   , $this = $(
@@ -93,10 +103,10 @@ var
   , $thFps = $('#thFps')
   , $acFps = $('#acFps')
   , $mraf = $('#mraf')
-  , div = document.createElement('div')
   , i = 0, I = 1000
   ;
-  
+
+// Update theoritical fps value
 function thFps() {
   $thFps.text(Math.round(I /$.fx.interval));
 }
@@ -105,15 +115,18 @@ thFps();
 $this.find('button').bind('click', function() {
   $frameInterval.attr('value', +$frameInterval.attr('value') + (this.innerHTML == '+'? 1 : -1)).trigger('change');
 });
+
+// We need to recreate a timerId after each interval change
+// see http://github.com/lrbabe/jquery.updateInterval
 $frameInterval.bind('change', function() {
   var fx = $.fx;
   fx.interval = +this.value;
   fx.stop();
-  // Lunch dummy animation to continue running current animations.
   $(div).animate({top: 0}, 1);
   thFps();
 });
 
+// begin fps counter
 $.fx.step.fps = function() {
   i++;
 };
@@ -122,9 +135,11 @@ setInterval(function() {
   $acFps.html(i).stop().animate({fps: 1}, I);
   i = 0;
 }, I);
+// end fps counter
 
 if (!!window.mozRequestAnimationFrame) {
   $.support.frameInterval = false;
+  // Again, we need to recreate a timerId to switch animation logic
   $mraf.bind('click', function() {
     $.fx.stop();
     $.support.frameInterval = !$.support.frameInterval;

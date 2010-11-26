@@ -95,6 +95,10 @@ var
           '<td> <span id="acFps">?</span> fps</td>'+
         '</tr>'+
         '<tr style="display:none;">'+
+          '<td title="mozPaintCount">mozPaint…</td>'+
+          '<td> <span id="pcFps">?</span> pps</td>'+
+        '</tr>'+
+        '<tr style="display:none;">'+
           '<td colspan="2"><input type="checkbox" id="mraf" /><label title="use MozRequestAnimationFrame" for="mraf">MozRequestAnim…</label></td>'+
         '</tr>'+
       '</table>'
@@ -102,8 +106,11 @@ var
   , $frameInterval = $this.find('input:first').attr('value', $.fx.interval)
   , $thFps = $('#thFps')
   , $acFps = $('#acFps')
+  , $pcFps = $('#pcFps')
   , $mraf = $('#mraf')
   , i = 0, I = 1000
+  , lastTime = Date.now()
+  , lastPaintCount = window.mozPaintCount
   ;
 
 // Update theoritical fps value
@@ -126,16 +133,32 @@ $frameInterval.bind('change', function() {
   thFps();
 });
 
-// begin fps counter
+/*
+ * x-browser fps counter
+ * No guarantee that it is accurate since browsers could execute js but skip painting corresponding frame.
+ * Apparently accurate, though. 
+ */
 $.fx.step.fps = function() {
   i++;
 };
 $acFps.animate({fps: 1}, I);
 setInterval(function() {
-  $acFps.html(i).stop().animate({fps: 1}, I);
+  var 
+      curTime = Date.now()
+    , curPaintCount = window.mozPaintCount
+    ;
+  $acFps.html(Math.round(i/(curTime-lastTime)*1000)).stop().animate({fps: 1}, I);
   i = 0;
+  
+  // Mozilla specific paint counter.
+  // accuratly counts painted frames, but the browser can paint frames more often than the js can process
+  if (curPaintCount) {
+    $pcFps.html(Math.round((curPaintCount - lastPaintCount)/(curTime-lastTime)*1000));
+    lastPaintCount = curPaintCount;
+  }
+  
+  lastTime = curTime;
 }, I);
-// end fps counter
 
 if (!!window.mozRequestAnimationFrame) {
   $.support.frameInterval = false;
@@ -146,7 +169,7 @@ if (!!window.mozRequestAnimationFrame) {
     $(div).animate({top: 0}, 1);
     
   });
-  $this.find('tr:last').show();
+  $this.find('tr:gt(2)').show();
 }
 
 })( jQuery );

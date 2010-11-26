@@ -3,8 +3,10 @@ What can it do?
 
 -   Manipulate [jQuery interval property](http://api.jquery.com/jQuery.fx.interval/) and see the effects in realtime.
 -   See how the interval affects the smoothness of animations.
--   Open your system monitor and see how it affects CPU usage. 
--   Switch from setInterval() based animation *ticks* to [MozRequestAnimationFrame](http://hacks.mozilla.org/2010/08/more-efficient-javascript-animations-with-mozrequestanimationframe/) based animation (Mozilla only).
+-   Open your system monitor and see how it affects CPU usage.
+Mozilla only:
+-   Switch from setInterval() based animation *ticks* to [MozRequestAnimationFrame](http://hacks.mozilla.org/2010/08/more-efficient-javascript-animations-with-mozrequestanimationframe/) based animation.
+-   See the difference between "how often can js run" and "how often can a frame be painted"
 
 What will I learn?
 ==================

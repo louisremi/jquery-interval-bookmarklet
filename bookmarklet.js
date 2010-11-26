@@ -30,17 +30,12 @@ jQuery.fx.prototype.custom = function( from, to, unit ) {
   t.elem = this.elem;
 
   if ( t() && jQuery.timers.push(t) && !timerId ) {
-    timerId = (jQuery.support.frameInterval? setFrameInterval : setInterval)(fx.tick, fx.interval);
-  }
-  
-  function setFrameInterval( cb ) {
-    var toClear = function() {
-      cb();
+    if (jQuery.support.frameInterval) {
+      window.addEventListener('MozBeforePaint', timerId = fx.tick, false);
       window.mozRequestAnimationFrame();
+    } else {
+      timerId = setInterval(fx.tick, fx.interval);
     }
-    window.addEventListener('MozBeforePaint', toClear, false);
-    window.mozRequestAnimationFrame();
-    return toClear;
   }
 }
 
@@ -48,13 +43,26 @@ jQuery.fx.prototype.custom = function( from, to, unit ) {
 jQuery(div).animate({top: 0}, 1);
 
 jQuery.fx.stop = function() {
-  (jQuery.support.frameInterval? clearFrameInterval : clearInterval)( timerId );
+  jQuery.support.frameInterval?
+    window.removeEventListener('MozBeforePaint', timerId, false) :
+    clearInterval( timerId );
   timerId = null;
-  
-  function clearFrameInterval( toClear ) {
-    window.removeEventListener('MozBeforePaint', toClear, false);
-  }
 };
+jQuery.fx.tick = function() {
+  var timers = jQuery.timers;
+
+  for ( var i = 0; i < timers.length; i++ ) {
+    if ( !timers[i]() ) {
+      timers.splice(i--, 1);
+    }
+  }
+
+  if ( !timers.length ) {
+    jQuery.fx.stop();
+  } else if (jQuery.support.frameInterval) {
+    window.mozRequestAnimationFrame();
+  }
+}
 
 /*
  * Widget code

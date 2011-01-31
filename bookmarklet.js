@@ -31,8 +31,8 @@ jQuery.fx.prototype.custom = function( from, to, unit ) {
 
   if ( t() && jQuery.timers.push(t) && !timerId ) {
     if (jQuery.support.frameInterval) {
-      window.addEventListener('MozBeforePaint', timerId = fx.tick, false);
-      window.mozRequestAnimationFrame();
+      window.addEventListener(jQuery.support.frameInterval.event, timerId = fx.tick, false);
+      window[jQuery.support.frameInterval.name]();
     } else {
       timerId = setInterval(fx.tick, fx.interval);
     }
@@ -44,7 +44,7 @@ jQuery(div).animate({top: 0}, 1);
 
 jQuery.fx.stop = function() {
   jQuery.support.frameInterval?
-    window.removeEventListener('MozBeforePaint', timerId, false) :
+    window.removeEventListener(jQuery.support.frameInterval.event, timerId, false) :
     clearInterval( timerId );
   timerId = null;
 };
@@ -60,7 +60,7 @@ jQuery.fx.tick = function() {
   if ( !timers.length ) {
     jQuery.fx.stop();
   } else if (jQuery.support.frameInterval) {
-    window.mozRequestAnimationFrame();
+    window[jQuery.support.frameInterval.name]();
   }
 }
 
@@ -107,7 +107,7 @@ var
           '<td> <span id="pcFps">?</span> pps</td>'+
         '</tr>'+
         '<tr style="display:none;">'+
-          '<td colspan="2"><input type="checkbox" id="mraf" /><label title="use MozRequestAnimationFrame" for="mraf">MozRequestAnim…</label></td>'+
+          '<td colspan="2"><input type="checkbox" id="mraf" /><label title="use RequestAnimationFrame" for="mraf">RequestAnim…</label></td>'+
         '</tr>'+
       '</table>'
     ).appendTo(document.body)
@@ -168,16 +168,33 @@ setInterval(function() {
   lastTime = curTime;
 }, I);
 
-if (!!window.mozRequestAnimationFrame) {
+
+if (!!window.mozRequestAnimationFrame || !!window.webkitRequestAnimationFrame) {
   $.support.frameInterval = false;
+  var requestAnimationFrame = !!window.mozRequestAnimationFrame ? 
+  	{
+  		name: 'mozRequestAnimationFrame',
+  		event: 'MozBeforePaint'
+  	}:
+  	{
+  		name: 'webkitRequestAnimationFrame',
+  		event: 'WebkitBeforePaint'
+  	};
   // Again, we need to recreate a timerId to switch animation logic
   $mraf.bind('click', function() {
     $.fx.stop();
     $.support.frameInterval = !$.support.frameInterval;
+    if ( $.support.frameInterval ) {
+    	$.support.frameInterval = requestAnimationFrame;
+    }
     $(div).animate({top: 0}, 1);
     
   });
-  $this.find('tr:gt(2)').show();
+  $this.find('tr:eq(4)').show();
+}
+
+if ( window.mozPaintCount ) {
+	$this.find('tr:eq(3)').show();
 }
 
 })( jQuery );

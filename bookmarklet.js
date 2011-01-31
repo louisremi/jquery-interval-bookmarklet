@@ -31,8 +31,7 @@ jQuery.fx.prototype.custom = function( from, to, unit ) {
 
   if ( t() && jQuery.timers.push(t) && !timerId ) {
     if (jQuery.support.frameInterval) {
-      window.addEventListener(jQuery.support.frameInterval.event, timerId = fx.tick, false);
-      window[jQuery.support.frameInterval.name]();
+      window[jQuery.support.frameInterval](fx.tick);
     } else {
       timerId = setInterval(fx.tick, fx.interval);
     }
@@ -42,12 +41,6 @@ jQuery.fx.prototype.custom = function( from, to, unit ) {
 // create a new timerId using a dummy animation
 jQuery(div).animate({top: 0}, 1);
 
-jQuery.fx.stop = function() {
-  jQuery.support.frameInterval?
-    window.removeEventListener(jQuery.support.frameInterval.event, timerId, false) :
-    clearInterval( timerId );
-  timerId = null;
-};
 jQuery.fx.tick = function() {
   var timers = jQuery.timers;
 
@@ -60,7 +53,7 @@ jQuery.fx.tick = function() {
   if ( !timers.length ) {
     jQuery.fx.stop();
   } else if (jQuery.support.frameInterval) {
-    window[jQuery.support.frameInterval.name]();
+    window[jQuery.support.frameInterval](this);
   }
 }
 
@@ -171,15 +164,7 @@ setInterval(function() {
 
 if (!!window.mozRequestAnimationFrame || !!window.webkitRequestAnimationFrame) {
   $.support.frameInterval = false;
-  var requestAnimationFrame = !!window.mozRequestAnimationFrame ? 
-  	{
-  		name: 'mozRequestAnimationFrame',
-  		event: 'MozBeforePaint'
-  	}:
-  	{
-  		name: 'webkitRequestAnimationFrame',
-  		event: 'WebkitBeforePaint'
-  	};
+  var requestAnimationFrame = !!window.mozRequestAnimationFrame ? 'mozRequestAnimationFrame' : 'webkitRequestAnimationFrame';
   // Again, we need to recreate a timerId to switch animation logic
   $mraf.bind('click', function() {
     $.fx.stop();
@@ -193,7 +178,7 @@ if (!!window.mozRequestAnimationFrame || !!window.webkitRequestAnimationFrame) 
   $this.find('tr:eq(4)').show();
 }
 
-if ( window.mozPaintCount ) {
+if ( window.mozPaintCount !== undefined ) {
 	$this.find('tr:eq(3)').show();
 }
 

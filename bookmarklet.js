@@ -100,7 +100,7 @@ var
           '<td> <span id="pcFps">?</span> pps</td>'+
         '</tr>'+
         '<tr style="display:none;">'+
-          '<td colspan="2"><input type="checkbox" id="mraf" /><label title="use RequestAnimationFrame" for="mraf">RequestAnim…</label></td>'+
+          '<td colspan="2"><input type="checkbox" id="mraf" /><label for="mraf">requestAnimationFrame</label></td>'+
         '</tr>'+
       '</table>'
     ).appendTo(document.body)

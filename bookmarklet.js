@@ -55,7 +55,7 @@ jQuery.fx.tick = function() {
 
   if ( !timers.length ) {
     jQuery.fx.stop();
-  } else if (jQuery.support.frameInterval) {
+  } else if (jQuery.support.frameInterval && timerId) {
     window[jQuery.support.frameInterval]($.fx.tick);
   }
 }

@@ -41,6 +41,11 @@ jQuery.fx.prototype.custom = function( from, to, unit ) {
 // create a new timerId using a dummy animation
 jQuery(div).animate({top: 0}, 1);
 
+jQuery.fx.stop = function() {
+  clearInterval( timerId );
+  timerId = null;
+};
+
 jQuery.fx.tick = function() {
   var timers = jQuery.timers;
 

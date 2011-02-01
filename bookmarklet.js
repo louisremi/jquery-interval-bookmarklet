@@ -30,11 +30,9 @@ jQuery.fx.prototype.custom = function( from, to, unit ) {
   t.elem = this.elem;
 
   if ( t() && jQuery.timers.push(t) && !timerId ) {
-    if (jQuery.support.frameInterval) {
-      window[jQuery.support.frameInterval](fx.tick);
-    } else {
-      timerId = setInterval(fx.tick, fx.interval);
-    }
+    timerId = jQuery.support.frameInterval ?
+      !window[jQuery.support.frameInterval](fx.tick):
+      setInterval(fx.tick, fx.interval);
   }
 }
 
@@ -58,7 +56,7 @@ jQuery.fx.tick = function() {
   if ( !timers.length ) {
     jQuery.fx.stop();
   } else if (jQuery.support.frameInterval) {
-    window[jQuery.support.frameInterval](this);
+    window[jQuery.support.frameInterval]($.fx.tick);
   }
 }
 
